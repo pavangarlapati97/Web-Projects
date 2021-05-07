@@ -1,0 +1,701 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+<meta name="keywords" content="Function Point Calculator, FP Calculator, Function Point, Function Points, Tiny Tools, Albrecht's FP, Albrecht's Function Point">
+<title>Function Point Calculator</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="description" content="This Tiny Tool web page is  for calculating 3D-Function Points and also for determining the Effort and Person Month for the SE Project.">
+
+<script language="JavaScript">
+
+ 
+
+      av=navigator.appVersion;
+      iMSIE=parseInt(av.indexOf("MSIE"))
+      if (iMSIE>=1){
+          iVer=parseInt(av.charAt(iMSIE+5))
+          if (iVer<4){
+             alert("This page is likely to be displayed incorrectly.\n\n Please download/install Microsoft Internet Explorer version 4 or greater.\n");
+          }
+      }
+      else {
+          if (navigator.appName=="Netscape"){
+             if (parseInt(av)<3){
+                alert("This page is likely to be displayed incorrectly.\n\n Please download/install Netscape Navigator version 3 or greater.\n");
+             }
+          }
+      }
+      if ((navigator.appName!="Microsoft Internet Explorer")&&(navigator.appName!="Netscape")){
+          alert("This page is likely to be displayed incorrectly. \n\n It requires Internet Explorer version 4 or Netscape Navigator version 3 or greater.\n");
+      }
+
+     
+   // DOMAIN CHARACTERISCTICS TABLE FUNCTIONS
+   // =======================================
+     // Create COUNT text box for every measurement parameter
+     //   Parameter passed: iFormNumber - ref. number of the form in the page (0,2,4,6,8)
+     //   Return value: NONE
+            function fCreateCountBox(iFormNumber){
+              document.write
+              ('<form name="Form_' + iFormNumber + '">\n' +
+               '<input type="text" name="tCountVal" size="7" value="0">\n' +
+               '</form>');
+
+               // Initialize value of form object
+               document.forms[iFormNumber].value=0;
+             }
+
+
+     // Create WEIGHTING FACTOR scale using radio buttons
+     //   Parameter passed: iFormNumber - ref. number of the form in the page (1,3,5,7,9)
+     //   Return value: NONE
+           function fCreateWFScale(iFormNumber){
+             document.write
+             ('<form name="Form_' + iFormNumber + '">\n' +
+              '<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">\n' +
+              '<tr align="center">\n');
+
+                for(var iRadio=0; iRadio<3; iRadio++){
+
+                  if (iRadio<2)
+                   document.write ('<td width="33%">');
+                  else
+                   document.write ('<td>');
+
+                  document.write('<input type="radio"');
+
+                  if (iRadio==0) document.write(' checked');    
+                  document.write
+                   (' name="radiobutton" value="' + iRadio + '"' +
+                    ' onClick="document.forms[' + iFormNumber + '].value=value">\n' +
+                              '</td>');                               
+                }
+
+             // Initialize value of form object  and radio buttons
+             document.forms[iFormNumber].value=0;
+
+             document.write
+             ('</tr>\n' +
+              '</table>\n' +
+              '</form>');
+           }
+
+     // Assign actual weight value to a certain form from the selected WEIGHTING FACTOR
+     // SLEIGHT OF HAND: This compensates the incompatibility between Explorer and
+     // Navigator radio buttons wherein the latter cannot have its radio button assigned
+     // with a different value - its defaults are 0,1,2....
+     //   Parameter passed:iWIndex
+     //   Return value: iActualWeight
+            function fGetActualWeight(iWIndex){
+               var iActualWeight=0;
+               var iRadValue = Number(document.forms[iWIndex].value);
+               if (((iWIndex==1)||(iWIndex==5))&& (iRadValue==0))iActualWeight=3;      
+               if (((iWIndex==1)||(iWIndex==5))&& (iRadValue==1))iActualWeight=4; 
+               if (((iWIndex==1)||(iWIndex==5))&& (iRadValue==2))iActualWeight=6; 
+
+               if ((iWIndex==3)&&(iRadValue==0))iActualWeight=4;      
+               if ((iWIndex==3)&&(iRadValue==1))iActualWeight=5;
+               if ((iWIndex==3)&&(iRadValue==2))iActualWeight=7;
+
+               if ((iWIndex==7)&&(iRadValue==0))iActualWeight=7;      
+               if ((iWIndex==7)&&(iRadValue==1))iActualWeight=10;
+               if ((iWIndex==7)&&(iRadValue==2))iActualWeight=15;
+
+               if ((iWIndex==9)&&(iRadValue==0))iActualWeight=5;      
+               if ((iWIndex==9)&&(iRadValue==1))iActualWeight=7;
+               if ((iWIndex==9)&&(iRadValue==2))iActualWeight=10;
+
+               return iActualWeight;
+            }
+
+     // Compute COUNT-TOTAL from Domain Characterisctics Table
+     //   Parameter passed: NONE
+     //   Return value: iCountTotalValue
+           function fFindCountTotal(){
+             var iWeight=0;         //Variable to hold the relative weight value
+             var iRowTotalValue=0;  //Variable to hold the row total value
+             var iCountIndex=0;     //Index for the form in COUNT column
+             var iWeightIndex=1;    //Index for the form in WEIGHTING FACTOR column
+             var iCountTotalValue=0;
+     
+             for(var iRowNum=0; iRowNum<5; iRowNum++){
+                //Get relative weight
+                iWeight=fGetActualWeight(iWeightIndex);
+            
+                iRowTotalValue=Number(document.forms[iCountIndex].tCountVal.value)* Number(iWeight);       
+                iCountTotalValue=Number(iCountTotalValue) + Number(iRowTotalValue);
+
+                // Adjust index
+                iCountIndex = Number(iCountIndex)+2;
+                iWeightIndex = Number(iWeightIndex)+2;
+             }          
+             return iCountTotalValue;
+           }
+
+
+     // Validate values in Domain Characteristics Table
+     //   Parameter passed: NONE
+     //   Return value: iEntryStat - Valid entries = 1, Invalid entries = 0
+            function fValidValues(){
+              var iEntryStat;
+              var iFIndex=0;
+    
+              for(var iRecIndex=0; iRecIndex<5; iRecIndex++){
+                 var iTextBoxValue = document.forms[iFIndex].tCountVal.value;
+
+                 if (iTextBoxValue > -1){
+                    iEntryStat=1;                   
+                 }
+                 else {
+                    iEntryStat=0;
+                    iRecIndex=5;             //Set condition to make sure the loop stops
+                    break;
+                 }
+                 iFIndex=Number(iFIndex)+ 2; //Increment index to next form with text box
+              }
+              return iEntryStat;
+            }
+
+
+   // COMPLEXITY ADJUSTMENT TABLE FUNCTIONS
+   // =====================================
+     // Create Complexity Adjustment scale using radio buttons
+     //   Parameter passed: iFormNumber - ref. number of the form in the page (10-23)
+     //   Return value: NONE
+           function fCreateCAScale(iFormNumber){  
+             document.write
+             ('<form name="Form_' + iFormNumber + '">\n' +
+              '<table width="210" border="0" cellspacing="0" cellpadding="0" align="center">\n' +
+              '<tr align="center">\n');
+
+                 for(var iRadio=0; iRadio<6; iRadio++){
+                   document.write
+                   ('<td width="35">\n' +
+                      '<input type="radio"');
+
+                   if (iRadio==0) document.write(' checked');
+    
+                   document.write
+                   (' name="radiobutton" value=' + iRadio +
+                    ' onClick="document.forms[' + iFormNumber + '].value=this.value">\n' +                               '</td>');                                  
+                  }
+             // Initialize value of form object
+             document.forms[iFormNumber].value=0; 
+
+             document.write
+             ('</tr>\n' +
+              '</table>\n' +
+              '</form>');
+          }
+
+
+      // Determine sum from Complexity Adjustment table
+      //   Parameter passed: NONE
+      //   Return value: iAdjScaleTotal - the resulting sum from the Adjustment Scale
+            function fAdjScaleSum(){
+              var iAdjScaleTotal = 0;
+
+                for(var iRefCount=10; iRefCount<24; iRefCount++){              
+                 iAdjScaleTotal = Number(iAdjScaleTotal) + Number(document.forms[iRefCount].value);
+              }           
+              return iAdjScaleTotal;
+            }
+
+
+   // CALCULATE FUNCTION POINT
+   // ========================
+     // Compute the function for the project
+           function fProj_FPCalc(){
+             var iEntryStatus=fValidValues();
+
+             if (iEntryStatus==1){ 
+               var iCountTotal = fFindCountTotal(); // Total of Domain Char. Table values
+               var iTotalCAV = fAdjScaleSum();      // Total of Adjustment Table values
+            
+               document.Form_FPResult.tProjFP.value = iCountTotal * (0.65 + (0.01 * iTotalCAV));
+             }
+             else { 
+               document.Form_FPResult.tProjFP.value = "PLS. ENTER VALID DATA";  
+               alert("Entries in the Domain Characteristics Table should be \n a number that is  greater than or equal to zero. \n\n PLEASE VERIFY THE VALUES YOU ENTERED.\n");                      }
+           }
+
+     // Reset all table entries
+           function fResetAll(){
+             if (confirm("Do you want to clear all entries in the tables?")){
+
+                // Clear DOMAIN CHARACTERISTICS Table
+                  var iCountIndex=0;     //Index for the form in COUNT column
+                  var iWeightIndex=1;    //Index for the form in WEIGHTING FACTOR column
+                     
+                  for(var iRowCount=0; iRowCount<5; iRowCount++){
+                    document.forms[iCountIndex].tCountVal.value=0;
+                    document.forms[iWeightIndex].value=0;
+                    document.forms[iWeightIndex].radiobutton[0].checked=1;
+
+                    // Adjust index
+                    iCountIndex = Number(iCountIndex)+2;
+                    iWeightIndex = Number(iWeightIndex)+2;                  
+                  }
+
+                // Clear COMPLEXITY ADJUSTMENT Table
+                  for (var iCAVIndex=10; iCAVIndex<24; iCAVIndex++){
+                    document.forms[iCAVIndex].value=0;
+                    document.forms[iCAVIndex].radiobutton[0].checked=1;
+                  }            
+
+                // Clear FP testbox
+                    document.Form_FPResult.tProjFP.value = 0;
+             }
+           }
+
+  //-->
+</script>
+
+</head>
+
+<body bgcolor="#a9a9a9"  leftmargin="0" topmargin="0">
+<table width="660" border="0" cellspacing="0" cellpadding="0" align="center" height="1060">
+  <tr align="left" valign="top">
+    <td height="79"><a name="TopPage"></a>
+      <table width="630" border="0" cellspacing="0" cellpadding="0" align="center">
+        <tr valign="bottom">
+
+          <td width="325">
+            <div align="centre"><font size="4" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman"><b><font size="5">FP
+              CALCULATOR</font></b></font></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td height="24">&nbsp;</td>
+  </tr>
+
+<!-- ======================================================== -->
+<!--         Create Domain Characteristic Table               -->
+<!-- ======================================================== -->
+  <tr valign="top" align="left">
+    <td height="24"><a name="DomCharTable"></a><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="3"><b>
+     </b></font></td>
+  </tr>
+  <tr align="center" valign="top">
+    <td height="178">
+      <table width="630" border="1" cellspacing="1" cellpadding="1" align="center">
+        <tr bgcolor="#99CCFF">
+          <td width="238" height="47">
+            <div align="center"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">MEASUREMENT
+              PARAMETER</font></div>
+          </td>
+          <td width="105" height="47" align="center" valign="middle">
+            <div align="center"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">COUNT<br>
+              (value &gt;= 0) </font></div>
+          </td>
+          <td width="286" valign="bottom" height="47">
+            <table width="285" border="0" cellspacing="0" cellpadding="0" align="center">
+              <tr>
+                <td align="center" colspan="3"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">WEIGHTING
+                  FACTOR</font></td>
+              </tr>
+              <tr>
+                <td align="center"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Simple</font></td>
+                <td align="center" width="33%"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Average</font></td>
+                <td align="center" width="33%"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Complex</font></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td align="left" valign="top" width="238"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">Number
+            of User Input</font></td>
+          <td align="center" valign="top" width="105">
+            <script>
+              fCreateCountBox(0);           
+            </script>
+          </td>
+          <td valign="top" width="286">
+            <script>
+              fCreateWFScale(1);
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="238" align="left" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">Number
+            of User Outputs</font></td>
+          <td align="center" valign="top" width="105">
+            <script>
+              fCreateCountBox(2);           
+            </script>
+          </td>
+          <td valign="top" width="286">
+            <script>
+              fCreateWFScale(3);
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="238" align="left" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">Number
+            of User Inquiries</font></td>
+          <td align="center" valign="top" width="105">
+            <script>
+              fCreateCountBox(4);           
+            </script>
+          </td>
+          <td valign="top" width="286">
+            <script>
+              fCreateWFScale(5);
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="238" align="left" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">Number
+            of Files</font></td>
+          <td align="center" valign="top" width="105">
+            <script>
+              fCreateCountBox(6);           
+            </script>
+          </td>
+          <td valign="top" width="286">
+            <script>
+              fCreateWFScale(7);
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="238" align="left" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">Number
+            of External Interfaces</font></td>
+          <td align="center" valign="top" width="105">
+            <script>
+              fCreateCountBox(8);           
+            </script>
+          </td>
+          <td valign="top" width="286">
+            <script>
+              fCreateWFScale(9);
+            </script>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="left" valign="top">
+    <td height="11">
+      <table width="630" border="0" cellspacing="0" cellpadding="0" align="center">
+        <tr>
+          <td>
+            <div align="right"><font face="Arial, Helvetica, sans-serif" size="1"><a href="#Complexity"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">
+</font></a><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">
+              | <a href="#FPCalc"> </a></font></font></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="left">
+    <td height="30">&nbsp;</td>
+  </tr>
+  <tr align="left" valign="top">
+    <td height="24"><a name="Complexity"></a><font face="Arial, Helvetica, sans-serif" size="3"><b>
+      </b></font></td>
+  </tr>
+
+<!-- ======================================================== -->
+<!--         Create Complexity Adjustment Table               -->
+<!-- ======================================================== -->
+  <tr align="center" valign="top">
+    <td height="426">
+      <table width="630" border="1" cellspacing="1" cellpadding="1">
+        <tr align="center" valign="bottom" bgcolor="#99CCFF">
+          <td width="37" height="48" valign="middle"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">ITEM</font></td>
+          <td width="363" valign="middle"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">COMPLEXITY
+            ADJUSTMENT QUESTIONS</font></td>
+          <td width="210" valign="bottom">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr align="center" valign="bottom">
+                <td colspan="6"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">SCALE</font></td>
+              </tr>
+              <tr align="center" valign="bottom">
+                <td colspan="6">
+                  <table width="210" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td>
+                        <div align="left"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="1">No
+                          Influence </font></div>
+                      </td>
+                      <td>
+                        <div align="right"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="1">Essential</font></div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr align="center" valign="bottom">
+                <td><b><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">0</font></b></td>
+                <td><b><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">1</font></b></td>
+                <td><b><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">2</font></b></td>
+                <td><b><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">3</font></b></td>
+                <td><b><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">4</font></b></td>
+                <td><b><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">5</font></b></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top" height="25"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">1</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Does
+            the system require reliable backup and recovery?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(10);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">2</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Are
+            data communications required?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(11);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">3</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Are
+            there distributed processing functions?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(12);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">4</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Is
+            performance critical?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(13);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">5</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Will
+            the system run in an existing, heavily utilized operational environment?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(14);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">6</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Does
+            the system require on-line data entry?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(15);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">7</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Does
+            the on-line data entry require the input transaction to be built over
+            multiple screens or operations?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(16);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">8</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Are
+            the master files updated on-line?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(17);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">9</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Are
+            the inputs, outputs, files or inquiries complex?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(18);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">10</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Is
+            the internal processing complex?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(19);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">11</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Is
+            the code to be designed reusable?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(20);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">12</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Are
+            conversion and installation included in the design?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(21);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">13</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Is
+            the system designed for multiple installations in different organizations?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(22);           
+            </script>
+          </td>
+        </tr>
+        <tr>
+          <td width="37" align="center" valign="top"><font size="2" face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">14</font></td>
+          <td width="363" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">Is
+            the application designed to facilitate change and ease of use by the
+            user?</font></td>
+          <td width="210" valign="top" align="center">
+            <script>
+              fCreateCAScale(23);         
+            </script>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="center" valign="top">
+    <td height="2">
+      <table width="630" border="0" cellspacing="0" cellpadding="0" align="center">
+        <tr valign="top">
+          <td>
+            <div align="right"><font face="Arial, Helvetica, sans-serif" size="1"><a href="#DomCharTable"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman"></font></a><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman">
+              | <a href="#FPCalc"></a></font></font></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="center">
+    <td height="29">&nbsp;</td>
+  </tr>
+
+<!-- ======================================================== -->
+<!--             Create FP Calculation Section                -->
+<!-- ======================================================== -->
+  <tr align="left" valign="top">
+    <td height="24">
+      <div align="left"><a name="FPCalc"></a><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="3"><b></b></font></div>
+    </td>
+  </tr>
+  <tr align="center" valign="top">
+    <td height="135">
+      <table width="630"  cellspacing="0" cellpadding="0">
+        <tr>
+          <td colspan="2" height="13">&nbsp;</td>
+        </tr>
+        <tr>
+          <td colspan="2" height="19">
+            <table width="630" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td width="62" valign="top" align="right"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2"></font></td>
+                <td width="10">&nbsp;</td>
+                <td width="561" align="left" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2"></font></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" height="13">&nbsp; </td>
+        </tr>
+        <tr valign="middle" align="center">
+          <td height="51">
+            <form name="Form_ClearEntry" >
+
+            </form>
+          </td>
+          <td height="51">
+            <form name="Form_CalcFP" >
+              <input type="button" name="bCalculateFP" value="Calculate Function Points" onclick="fProj_FPCalc()">
+            </form>
+          </td>
+        </tr>
+        <tr valign="top">
+          <td colspan="2" height="10">&nbsp;</td>
+        </tr>
+        <tr valign="top">
+          <td colspan="2">
+            <table width="630" border="1" cellspacing="1" cellpadding="1">
+              <tr bgcolor="#99CCFF" align="center">
+                <td colspan="3" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">RESULT</font></td>
+              </tr>
+              <tr valign="middle">
+                <td colspan="2" align="right" valign="top"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="2">PROJECT
+              </font> </td>
+                <td width="359" height="50" align="center" valign="top">
+                  <form name="Form_FPResult" >
+                    <input type="text" name="tProjFP" value="0" size="40">
+                  </form>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="left" valign="top">
+    <td height="12">
+
+        <tr>
+          <td>
+            <div align="right"><font face="Arial, Helvetica, sans-serif, Verdana, Courier, Times New Roman" size="1"><a href="#TopPage"></a> <a href="#DomCharTable"></a>
+              <a href="#Complexity"></a></font></div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="center">
+    <td height="14">&nbsp;</td>
+  </tr>
+  <tr align="center" valign="top">
+    <td height="59">
+
+        <tr>
+          <td>
+
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<p></p>
+<p> </p>
+</body>
+</html>
+
