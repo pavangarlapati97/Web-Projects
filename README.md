@@ -1,20 +1,21 @@
 Function Point Analysis(FPA) is used to make estimate of the software project, including its testing in terms of functionality or function size of the software product.
 
                                         --**Allan J. Albrecht initially developed function Point Analysis in 1979 at IBM**--
---**The functional size of the product is measured in terms of the function point, which is a standard of measurement to measure the software application.**--
+The functional size of the product is measured in terms of the function point, which is a standard of measurement to measure the software application.
 
-                  Types of FP Attributes:
-Measurements                                 Parameters	Examples
 
-1.Number of External Inputs(EI)              Input screen and tables
+                                Types of FP Attributes:
+Measurements                                 **(Parameters	Examples)**
 
-2. Number of External Output (EO)            Output screens and reports
+1.Number of External Inputs(EI)              (Input screen and tables)
 
-3. Number of external inquiries (EQ)         Prompts and interrupts.
+2. Number of External Output (EO)            (Output screens and reports)
 
-4. Number of internal files (ILF)            Databases and directories
+3. Number of external inquiries (EQ)         (Prompts and interrupts)
 
-5. Number of external interfaces (EIF)       Shared databases and shared routines.
+4. Number of internal files (ILF)            (Databases and directories)
+
+5. Number of external interfaces (EIF)       (Shared databases and shared routines)
 
 
 
